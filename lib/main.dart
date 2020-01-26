@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:photo_maker/ui/screens/HomeScreen.dart';
-import 'package:photo_maker/ui/screens/PhotoCreator.dart';
+import 'package:dolly_parton_challenge/ui/screens/HomeScreen.dart';
 
 void main() => runApp(MyApp());
 
@@ -8,7 +7,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Dollyparton challenge",
+      title: "Dolly parton challenge",
       theme: ThemeData(
         primarySwatch: Colors.blue,
         accentColor: Colors.pink,
@@ -22,7 +21,7 @@ class MyApp extends StatelessWidget {
           textTheme: ButtonTextTheme.primary,
         ),
       ),
-      home: PhotoCreator(),
+      home: HomeScreen(),
     );
   }
 }

@@ -1,4 +1,4 @@
-package com.nordef.photo_maker;
+package com.nordef.dolly_parton_challenge;
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity;

@@ -14,12 +14,15 @@ class ImageCard extends StatefulWidget {
 
 class _ImageCardState extends State<ImageCard> {
   File _image;
+  double _width;
 
   @override
   Widget build(BuildContext context) {
+    _width = MediaQuery.of(context).size.width;
+
     return Container(
-      color: Colors.blue,
-      margin: EdgeInsets.all(2),
+      width: _width / 2,
+      height: _width / 2,
       child: Stack(
         children: <Widget>[
           Positioned.fill(
@@ -34,15 +37,16 @@ class _ImageCardState extends State<ImageCard> {
             ),
           ),
           Positioned.fill(
+            bottom: _width / 150,
             child: Container(
               alignment: Alignment.bottomCenter,
               child: _textWithStroke(
-                text: 'Item ${widget.index}',
-                fontSize: 26,
+                text: _displayText(),
+                fontSize: _width / 18,
                 fontWeight: FontWeight.w500,
                 strokeColor: Colors.black,
                 textColor: Colors.white,
-                strokeWidth: 5.5,
+                strokeWidth: _width / 120,
               ),
             ),
           ),
@@ -55,7 +59,9 @@ class _ImageCardState extends State<ImageCard> {
     if (_image != null)
       return FileImage(_image);
     else
-      return AssetImage('assets/images/user_placeholder.jpg');
+      return AssetImage(
+        'assets/images/add.png',
+      );
   }
 
   _handleImage() async {
@@ -108,5 +114,18 @@ class _ImageCardState extends State<ImageCard> {
         ),
       ],
     );
+  }
+
+  _displayText() {
+    switch (widget.index) {
+      case 0:
+        return 'Facebook';
+      case 1:
+        return 'Instagram';
+      case 2:
+        return 'LinkedIn';
+      case 3:
+        return 'Tinder';
+    }
   }
 }
