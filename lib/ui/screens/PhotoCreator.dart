@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:dolly_parton_challenge/Constants/AdmobId.dart';
 import 'package:dolly_parton_challenge/Constants/Constants.dart';
 import 'package:dolly_parton_challenge/models/PopUpMenuItems.dart';
@@ -12,7 +11,10 @@ import 'package:dolly_parton_challenge/ui/widgets/FancyBackground.dart';
 import 'package:dolly_parton_challenge/ui/widgets/ImageCard.dart';
 import 'package:dolly_parton_challenge/ui/widgets/ShowActions.dart';
 import 'package:dolly_parton_challenge/utilities/adBuilder.dart';
+import 'package:flutter/rendering.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PhotoCreator extends StatefulWidget {
   @override
@@ -22,7 +24,7 @@ class PhotoCreator extends StatefulWidget {
 class _PhotoCreatorState extends State<PhotoCreator> {
   double _width, _height = 0;
   ScreenshotController screenshotController = ScreenshotController();
-  bool _isLoading = false;
+  bool _isLoading = false, _isSavedToGallery = false;
 
   BannerAd _bannerAd;
   InterstitialAd _interstitialAd;
@@ -30,6 +32,7 @@ class _PhotoCreatorState extends State<PhotoCreator> {
   @override
   void initState() {
     super.initState();
+    _askForPermission();
     _initAds();
   }
 
@@ -148,7 +151,7 @@ class _PhotoCreatorState extends State<PhotoCreator> {
                       children: <Widget>[
                         RaisedButton(
                           child: Text(
-                            "Save to gallery",
+                            _isSavedToGallery ? 'Saved' : "Save to gallery",
                           ),
                           onPressed: _saveImageToGallery,
                         ),
@@ -167,16 +170,17 @@ class _PhotoCreatorState extends State<PhotoCreator> {
     );
   }
 
-  _shareImage() {
+  _shareImage() async {
     setState(() {
       _isLoading = true;
     });
     screenshotController.capture().then((File image) async {
       print("Capture Done");
+      File _image = image;
 
       try {
         await Share.file('Share', 'image_result.png',
-            image.readAsBytesSync().buffer.asUint8List(), 'image/png',
+            _image.readAsBytesSync().buffer.asUint8List(), 'image/png',
             text: '$shareBody');
 
         setState(() {
@@ -190,25 +194,29 @@ class _PhotoCreatorState extends State<PhotoCreator> {
     });
   }
 
-  _saveImageToGallery() {
+  _saveImageToGallery() async {
     setState(() {
       _isLoading = true;
     });
+
     screenshotController.capture().then((File image) async {
       print("Capture Done");
+      File _image = image;
+      print('${_image.path}');
 
       try {
-        final result = await ImageGallerySaver.saveImage(
-            image.readAsBytesSync().buffer.asUint8List());
-        print(result);
-
-        setState(() {
-          _isLoading = false;
+        GallerySaver.saveImage(_image.path).then((bool result) {
+          print('res: $result');
+          setState(() {
+            if (result) _isSavedToGallery = true;
+            _isLoading = false;
+          });
         });
       } catch (e) {
         print('error: $e');
       }
     }).catchError((onError) {
+      print('error: $onError');
       print(onError);
     });
   }
@@ -219,6 +227,45 @@ class _PhotoCreatorState extends State<PhotoCreator> {
           child: child,
         ),
       );
+
+  _askForPermission() async {
+    Map<PermissionGroup, PermissionStatus> permissions =
+        await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+
+    print('${permissions[PermissionGroup.storage]}');
+    if (permissions[PermissionGroup.storage] != PermissionStatus.granted)
+      _showConfirmationDialog();
+  }
+
+  _showConfirmationDialog() {
+    showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) {
+          return AlertDialog(
+            content: Text(
+              "This permission is required to select and save images to gallery.",
+            ),
+            title: Text("Warning !"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("No"),
+                onPressed: () {
+                  Navigator.pop(context, false);
+                  Navigator.pop(context);
+                },
+              ),
+              FlatButton(
+                child: Text("Accept"),
+                onPressed: () {
+                  Navigator.pop(context, true);
+                  _askForPermission();
+                },
+              ),
+            ],
+          );
+        });
+  }
 
   _initAds() {
     FirebaseAdMob.instance.initialize(appId: admobAppId);

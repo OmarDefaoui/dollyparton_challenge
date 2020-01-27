@@ -134,7 +134,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 onPressed: () {
-                  _bannerAd?.dispose();
+                  try {
+                    _bannerAd?.dispose();
+                  } catch (error) {}
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
