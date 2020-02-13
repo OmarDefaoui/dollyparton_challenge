@@ -19,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   BannerAd _bannerAd;
   InterstitialAd _interstitialAd;
   double _height;
+  bool _isInterstitialAdLoaded = false;
 
   @override
   void initState() {
@@ -134,10 +135,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 onPressed: () {
+                  //close  banner
                   try {
                     _bannerAd?.dispose();
                   } catch (error) {}
 
+                  //open interstitial ad
+                  if (_isInterstitialAdLoaded) {
+                    _isInterstitialAdLoaded = false;
+                    _interstitialAd..show();
+                  }
+
+                  //navigate to next page
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -166,10 +175,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ..load()
       ..show();
 
-    Future.delayed(const Duration(seconds: 2), () {
-      _interstitialAd = createInterstitialAd(1)
-        ..load()
-        ..show();
-    });
+    _interstitialAd = createInterstitialAd(1)
+      ..load().then((value) {
+        if (value) _isInterstitialAdLoaded = true;
+      });
   }
 }

@@ -24,7 +24,9 @@ class PhotoCreator extends StatefulWidget {
 class _PhotoCreatorState extends State<PhotoCreator> {
   double _width, _height = 0;
   ScreenshotController screenshotController = ScreenshotController();
-  bool _isLoading = false, _isSavedToGallery = false;
+  bool _isLoading = false,
+      _isSavedToGallery = false,
+      _isInterstitialAdLoaded = false;
 
   BannerAd _bannerAd;
   InterstitialAd _interstitialAd;
@@ -171,6 +173,7 @@ class _PhotoCreatorState extends State<PhotoCreator> {
   }
 
   _shareImage() async {
+    _showInterstitialAd();
     setState(() {
       _isLoading = true;
     });
@@ -195,6 +198,7 @@ class _PhotoCreatorState extends State<PhotoCreator> {
   }
 
   _saveImageToGallery() async {
+    _showInterstitialAd();
     setState(() {
       _isLoading = true;
     });
@@ -273,10 +277,16 @@ class _PhotoCreatorState extends State<PhotoCreator> {
       ..load()
       ..show();
 
-    Future.delayed(const Duration(seconds: 2), () {
-      _interstitialAd = createInterstitialAd(2)
-        ..load()
-        ..show();
-    });
+    _interstitialAd = createInterstitialAd(2)
+      ..load().then((value) {
+        if (value) _isInterstitialAdLoaded = true;
+      });
+  }
+
+  void _showInterstitialAd() {
+    if (_isInterstitialAdLoaded) {
+      _isInterstitialAdLoaded = false;
+      _interstitialAd..show();
+    }
   }
 }
